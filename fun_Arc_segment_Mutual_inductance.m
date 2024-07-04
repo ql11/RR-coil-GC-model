@@ -19,7 +19,7 @@ if nargin < 9
 end
 
 if dz == 0 && R1 == R2 && afa1 == bta1 && afa2 == bta2
-    M = (u0.*R1.*abs(afa2-afa1)./(2.*pi)).*(log(2.*R1.*abs(afa2-afa1)./5e-6) - 0.75);
+    M = 3*(u0.*R1.*abs(afa2-afa1)./(2.*pi)).*(log(2.*R1.*abs(afa2-afa1)./5e-6) - 0.75); % 借用直线段的自感的3倍
 else
     fun_distance = @(afa,bta) sqrt(...
         (R2.*cos(bta) + dx - R1.*cos(afa)).^2 ...
