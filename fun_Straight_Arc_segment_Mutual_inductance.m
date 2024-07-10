@@ -3,8 +3,9 @@ function M = fun_Straight_Arc_segment_Mutual_inductance(l,r,d)
 % ![原理图.png](https://s2.loli.net/2024/07/08/iVBdvjGuKzDsmpf.png)
 % l为直线段的长度；r为圆弧的半径；d为直线段与圆弧段之间的间距，当圆心远离直线段时，d>0，当圆心靠近直线段时，d<0
 % 采用矢量磁位二重积分方法计算互感，圆弧范围为0~pi/4，微分关系为dj=RIdphi 直线段积分范围为0~l
-u0 = 4*pi*1e-7;
-Ld = 2.*sqrt(6e-3^2/12); % 莱尔定律考虑带材宽度
+[u0,w] = Attitude('u0','Tape width'); % u0 = 4*pi*1e-7; w带材宽度
+
+Ld = 2.*sqrt(w/12); % 莱尔定律考虑带材宽度
 
 
 afa = @(phi,x) phi + pi/2 - atan(d./x); % 圆心与直线段上点的连线的角度 加 圆弧段角度
