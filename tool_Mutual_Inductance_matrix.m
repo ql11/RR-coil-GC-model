@@ -39,3 +39,4 @@ for i = 1:M_size % 原元素，矩阵行
     end
 end
 
+M = fun_Arc_segment_Mutual_inductance(R1,R2,afa1,afa2,bta1,bta2,dx,dy,dz)
