@@ -33,7 +33,7 @@ for i = 1:M_size % 源元素，矩阵行
             end
         else
             if  ismember(Nd_i,[1,3,5,7]) && ismember(Nd_j,[1,3,5,7]) %均为直线
-                if mod(Nd_i - Nd_j, 2) == 1 % 垂直
+                if mod(Nd_i - Nd_j, 4) ~= 0 % 垂直
                     M(i,j) = 0; % 互感为0
                 else % 平行
                     l_temp = lx.*(ismember(Nd_i,[3,7])) + ly.*(ismember(Nd_i,[1,5])); % 根据方位判断直线段长度
@@ -42,14 +42,14 @@ for i = 1:M_size % 源元素，矩阵行
                     .*abs(mod(Nd_i - Nd_j,8)/4); % 判断是否位于两侧
                     M(i,j) = fun_Straight_segment_Mutual_inductance(l_temp,d_temp); %平行线互感
                 end
-            elseif condition2 % 平行直线
-                body
-            elseif condition3 % 圆弧段-圆弧段
-                body
-            elseif condition4 % 直线段-圆弧段
-                body
-            elseif condition5 % 圆弧段-直线段
-                body
+%             elseif condition2 % 平行直线
+%                 body
+%             elseif condition3 % 圆弧段-圆弧段
+%                 body
+%             elseif condition4 % 直线段-圆弧段
+%                 body
+%             elseif condition5 % 圆弧段-直线段
+%                 body
             end
             M(j,i) = M(i,j);
         end
