@@ -8,6 +8,9 @@
 
 M_size = N*Nd;% 矩阵大小，双饼拆为两个单饼
 M = zeros(M_size); %初始化互感矩阵,顺序为：元素(1~8)-匝(1~406),矩阵初始位置为位于-x的直线段垂直于x轴
+line_array = [1,3,5,7]; %直线段
+arc_array = [2,4,6,8]; %圆弧段
+
 
 %% 循环计算
 
@@ -16,14 +19,17 @@ for i = 1:M_size % 源元素，矩阵行
     %源元素特征
     [Nd_i,N_i] = ind2sub([Nd,N],i); % 源方位，源匝数
     r_i = (N_i-1).*dr + r1; %源元素半径
+    p_i = [lx/2,ly/2].*([-1,1].*(Nd_i==1) + [1,1].*(Nd_i==2) + [1,-1].*(Nd_i==3) + [-1,-1].*(Nd_i == 4));%圆角圆心位置
     
     for j = 1:i % 目标元素，矩阵列
         
         %目标元素特征
         [Nd_j,N_j] = ind2sub([Nd,N],j); % 目标方位，目标匝数
         r_j = (N_j-1).*dr + r1; %目标元素半径
-        
-        if i == j
+        p_j = [lx/2,ly/2].*([-1,1].*(Nd_j==1) + [1,1].*(Nd_j==2) + [1,-1].*(Nd_j==3) + [-1,-1].*(Nd_j == 4));%圆角圆心位置
+
+
+        if i == j % 对角线计算自感
             if ismember(Nd_i,[1,5]) %直线段 y方向
                 M(i,j) = fun_Straight_segment_Mutual_inductance(ly);
             elseif ismember(Nd_i,[3,7]) %直线段 x方向
@@ -31,25 +37,31 @@ for i = 1:M_size % 源元素，矩阵行
             else  % 圆弧段
                 M(i,j) = fun_Arc_segment_Mutual_inductance(r_i,r_j);
             end
-        else
-            if  ismember(Nd_i,[1,3,5,7]) && ismember(Nd_j,[1,3,5,7]) %均为直线
-                if mod(Nd_i - Nd_j, 4) ~= 0 % 垂直
+        else % 非对角线计算互感
+            if  ismember(Nd_i,line_array) && ismember(Nd_j,line_array) %均为直线
+                if mod(Nd_i - Nd_j, 4) ~= 0 % 垂直直线
                     M(i,j) = 0; % 互感为0
-                else % 平行
+                else % 非垂直直线即为平行直线
                     l_temp = lx.*(ismember(Nd_i,[3,7])) + ly.*(ismember(Nd_i,[1,5])); % 根据方位判断直线段长度
-                    d_temp = abs(r_i-r_j) + ... % 位置差异
-                    (lx.*(ismember(Nd_i,[1,5])) + ly.*(ismember(Nd_i,[3,7])))... % xy方位判断
-                    .*abs(mod(Nd_i - Nd_j,8)/4); % 判断是否位于两侧
+                    
+                    d_temp =...
+                        abs(r_i-r_j) + ... % 位置差异
+                        (lx.*(ismember(Nd_i,[1,5])) + ly.*(ismember(Nd_i,[3,7])))... % xy方位判断
+                        .*abs(mod(Nd_i - Nd_j,8)/4); % 判断是否位于两侧
+                    
                     M(i,j) = fun_Straight_segment_Mutual_inductance(l_temp,d_temp); %平行线互感
+
+                    clear l_temp d_temp
                 end
-%             elseif condition2 % 平行直线
-%                 body
-%             elseif condition3 % 圆弧段-圆弧段
-%                 body
-%             elseif condition4 % 直线段-圆弧段
-%                 body
-%             elseif condition5 % 圆弧段-直线段
-%                 body
+            elseif ismember(Nd_i,arc_array) && ismember(Nd_j,arc_array) % 圆弧段-圆弧段
+                afa_i = (Nd_i-2)./2.*pi./2; % 源元素起始角度
+                afa_j = (Nd_i-2)./2.*pi./2; % 目标元素起始角度
+                p_temp = p_j - p_i;
+                M(i,j) = fun_Arc_segment_Mutual_inductance(r_i,r_j,afa_i,afa_i + pi/2,afa_j,afa_j + pi/2,p_temp(1),p_temp(2),0);
+            elseif condition4 % 直线段-圆弧段
+                body
+            elseif condition5 % 圆弧段-直线段
+                body
             end
             M(j,i) = M(i,j);
         end

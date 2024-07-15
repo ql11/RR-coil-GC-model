@@ -6,16 +6,27 @@ function M = fun_Arc_segment_Mutual_inductance(R1,R2,afa1,afa2,bta1,bta2,dx,dy,d
 [u0,w] = Attitude('u0','Tape width'); % u0 = 4*pi*1e-7; w带材宽度
 Ld = 2.*sqrt(w/12); % 莱尔定律考虑带材宽度
 
-if nargin < 9
-    
+if nargin == 6 % (R1,R2,afa1,afa2,bta1,bta2)
     dx = 0;
     dy = 0;
     dz = 0;
-    if nargin < 6
-        afa1 = 0; bta1 = 0;
-        afa2 = 1/2*pi; bta2 = 1/2*pi;  
-    end
 end
+if nargin == 8 % (R1,R2,afa1,afa2,bta1,bta2,dx,dy)
+    dz = 0;
+end
+if nargin == 2 % (R1,R2)
+    dx = 0;
+    dy = 0;
+    dz = 0;
+    afa1 = 0; bta1 = 0;
+    afa2 = 1/2*pi; bta2 = 1/2*pi; 
+end
+if nargin == 7 % (R1,R2,afa1,bta1,dx,dy,dz)
+        dz = dx;dy = bta2;dx = bta1;
+        bta1 = afa2;
+        afa2 = 1/2*pi + afa1; bta2 = 1/2*pi + bta1;  
+end
+
 
 if dz == 0 && R1 == R2 && afa1 == bta1 && afa2 == bta2
 
