@@ -1,4 +1,4 @@
-function M = fun_Straight_Arc_segment_Mutual_inductance(l,r,d)
+function M = fun_Straight_Arc_segment_Mutual_inductance(l,r,d,h)
 % 计算直线段和1/4圆弧段之间的互感
 % ![原理图.png](https://s2.loli.net/2024/07/08/iVBdvjGuKzDsmpf.png)
 % l为直线段的长度；r为圆弧的半径；d为直线段与圆弧段之间的间距，当圆心远离直线段时，d>0，当圆心靠近直线段时，d<0
@@ -7,11 +7,14 @@ function M = fun_Straight_Arc_segment_Mutual_inductance(l,r,d)
 
 Ld = 2.*sqrt(w/12); % 莱尔定律考虑带材宽度
 
+if nargin == 3 % 默认h为0
+    h = 0;
+end
 
 afa = @(phi,x) phi + pi/2 - atan(d./x); % 圆心与直线段上点的连线的角度 加 圆弧段角度
 s = @(phi,x) r.^2 + d.^2 + x.^2 - 2.*r.*abs(d).*cos(afa(phi,x));% 余弦定理
 
-fun_M = @(phi,x) u0./(4*pi).*r.*cos(phi)./sqrt(s(phi,x).^2+Ld^2);
+fun_M = @(phi,x) u0./(4*pi).*r.*cos(phi)./sqrt(s(phi,x).^2+Ld^2+h^2);
 
 M = integral2(fun_M,0,pi/4,0,l);
 
