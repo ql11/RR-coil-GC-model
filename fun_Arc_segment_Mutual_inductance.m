@@ -42,6 +42,7 @@ else
     
     fun_M = @(afa,bta) u0./(4*pi).*(R1.*R2).*(cos(afa - bta))./fun_distance(afa,bta);
     M = integral2(fun_M,afa1,afa2,bta1,bta2);
+    M = abs(M);
 end
 
 end

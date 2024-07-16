@@ -6,6 +6,8 @@
 [r1,dr] = Attitude('Inner fillet radius','Thickness per turn');%圆角内径和每匝厚度
 [Nd,N]= Attitude('N of divisions','SP N'); %单饼匝数，双饼个数，线圈个数
 
+N = 10; % 调试用
+
 M_size = N*Nd;% 矩阵大小，双饼拆为两个单饼
 M = zeros(M_size); %初始化互感矩阵,顺序为：元素(1~8)-匝(1~406),矩阵初始位置为位于-x的直线段垂直于x轴
 line_array = [1,3,5,7]; %直线段
@@ -55,7 +57,7 @@ for i = 1:M_size % 源元素，矩阵行
                 end
             elseif ismember(Nd_i,arc_array) && ismember(Nd_j,arc_array) % 圆弧段-圆弧段
                 afa_i = (Nd_i-2)./2.*pi./2; % 源元素起始角度
-                afa_j = (Nd_i-2)./2.*pi./2; % 目标元素起始角度
+                afa_j = (Nd_j-2)./2.*pi./2; % 目标元素起始角度
                 p_temp = p_j - p_i;
                 M(i,j) = fun_Arc_segment_Mutual_inductance(r_i,r_j,afa_i,afa_i + pi/2,afa_j,afa_j + pi/2,p_temp(1),p_temp(2),0);
             elseif ismember(Nd_i,line_array) &&  ismember(Nd_j,arc_array)% 直线段-圆弧段
