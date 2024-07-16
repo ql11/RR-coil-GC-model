@@ -6,7 +6,7 @@
 [r1,dr] = Attitude('Inner fillet radius','Thickness per turn');%圆角内径和每匝厚度
 [Nd,N]= Attitude('N of divisions','SP N'); %单饼匝数，双饼个数，线圈个数
 
-%N = 50; % 调试用
+%N = 100; % 调试用
 
 M_size = N*Nd;% 矩阵大小，双饼拆为两个单饼
 M = zeros(M_size); %初始化互感矩阵,顺序为：元素(1~8)-匝(1~406),矩阵初始位置为位于-x的直线段垂直于x轴
@@ -99,3 +99,4 @@ save([pwd,'\data\single_pancake_mutual_inductance_matrix.mat'],'M_sp');
 endDateTime = datetime('now');
 fprintf('计算结束 %s\n', endDateTime);
 fprintf('总时长 %s\n', endDateTime-startDateTime);
+fprintf('总自感 %.4f\n', sum(M_sp,'all'));
