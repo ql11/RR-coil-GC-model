@@ -6,18 +6,21 @@
 [r1,dr] = Attitude('Inner fillet radius','Thickness per turn');%圆角内径和每匝厚度
 [Nd,N]= Attitude('N of divisions','SP N'); %单饼匝数，双饼个数，线圈个数
 
-N = 10; % 调试用
+N = 50; % 调试用
 
 M_size = N*Nd;% 矩阵大小，双饼拆为两个单饼
 M = zeros(M_size); %初始化互感矩阵,顺序为：元素(1~8)-匝(1~406),矩阵初始位置为位于-x的直线段垂直于x轴
 line_array = [1,3,5,7]; %直线段
 arc_array = [2,4,6,8]; %圆弧段
 
+% 输出当前日期时间
+startDateTime = datetime("now");
+fprintf('计算开始 %s\n', startDateTime);
 
 %% 循环计算
 
-for i = 1:M_size % 源元素，矩阵行
-    
+parfor i = 1:M_size % 源元素，矩阵行
+    tic
     %源元素特征
     [Nd_i,N_i] = ind2sub([Nd,N],i); % 源方位，源匝数
     r_i = (N_i-1).*dr + r1; %源元素半径,也和直线段位置相关
@@ -52,8 +55,7 @@ for i = 1:M_size % 源元素，矩阵行
                         .*(Nd_i ~= Nd_j); % 判断是否位于两侧
                     
                     M(i,j) = fun_Straight_segment_Mutual_inductance(l_temp,d_temp); %平行线互感
-
-                    clear l_temp d_temp
+                    
                 end
             elseif ismember(Nd_i,arc_array) && ismember(Nd_j,arc_array) % 圆弧段-圆弧段
                 afa_i = (Nd_i-2)./2.*pi./2; % 源元素起始角度
@@ -80,8 +82,20 @@ for i = 1:M_size % 源元素，矩阵行
                 
                 M(i,j) = fun_Straight_Arc_segment_Mutual_inductance(l_temp,r_i,d_temp,0);
             end
-            M(j,i) = M(i,j);
+            %M(j,i) = M(i,j);
         end
         
     end
+    % 输出进度
+    schedule = i/M_size*100;
+    fprintf('循环时间%.2fs,循环数%d/%d,进度%.2f%%\n',toc,i,M_size,schedule);
 end
+
+
+%% 保存文件
+M_sp = tril(M,-1)+M'; % 由下对角线对称镜像形成对称互感矩阵
+save([pwd,'\data\single_pancake_mutual_inductance_matrix.mat'],'M_sp');
+% 输出当前日期时间
+endDateTime = datetime('now');
+fprintf('计算结束 %s\n', endDateTime);
+fprintf('总时长 %s\n', endDateTime-startDateTime);
