@@ -12,6 +12,10 @@
 */temp/
 /temp/
 
+#ignore data folder
+*/data/
+/data/
+
 #ignore following files;
 *.asv
 *.slxc
