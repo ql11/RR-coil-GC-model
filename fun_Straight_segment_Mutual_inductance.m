@@ -1,4 +1,4 @@
-function M = fun_Straight_segment_Mutual_inductance(l,d)
+function M = fun_Straight_segment_Mutual_inductance(l,d,z)
 %fun_Straight_segment_Mutual_inductance - 求解平行等长直线段的互感
 %
 % 互感 = fun(线段长度，线段间距)
@@ -8,14 +8,23 @@ Ld = 2.*sqrt(w/12); % 莱尔定律考虑带材宽度
 
 if nargin == 1 %求解自感
     M = u0.*l./(2.*pi).*(log(2.*l./w)-0.75); %直线段自感
-else
+elseif nargin == 2 %平行等长等位置
     M1 = u0.*l./(2.*pi).*(log(2.*l./sqrt(d.^2 + Ld.^2))-1); % 两直线段互感公式
-
+    
     if real(M1) > 0 % 大于零就不管了
         M = M1;
     else % 小于0再积分计算
-        fun_M = @(x,y) u0./(4*pi)./(sqrt(d.^2+(x-y).^2));
+        fun_M = @(x,y) u0./(4*pi)./(sqrt(d.^2+(x-y).^2 + Ld.^2));
         M = integral2(fun_M,0,l,0,l);
     end
+    
+else % 两直线段在延伸方向上还有间距
+    fun_M = @(x,y) u0./(4*pi)./(sqrt(d.^2 + (x - y + z).^2 + Ld.^2));
+    M = integral2(fun_M,0,l,0,l);
 end
+
+
+end
+
+
 
