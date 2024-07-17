@@ -4,39 +4,104 @@
 %% 调用属性参数和初始化
 [lx,ly] = Attitude('Length x-axis','Length y-axis'); %x，y轴直线段长度
 [r1,dr] = Attitude('Inner fillet radius','Thickness per turn');%圆角内径和每匝厚度
-[Nd,N,Ndp,Nc]= Attitude('N of divisions','SP N','N of DPs','N of coils'); %单饼匝数，双饼个数，线圈个数
+
+%[Nd,N,Ndp,Nc]= Attitude('N of divisions','SP N','N of DPs','N of coils'); %单饼匝数，双饼个数，线圈个数
+N = 10; % 调试用
+[Nd,~,Ndp,Nc]= Attitude('N of divisions','SP N','N of DPs','N of coils'); %单饼匝数，双饼个数，线圈个数
+
 pt = Attitude('Pole pitch');%极距
 
-%todo 其他参数未调用
+M_size = N*Nd*(2*Ndp)*Nc;% 矩阵大小，双饼拆为两个单饼
+M = zeros(M_size); %初始化互感矩阵,顺序为：元素(1~8)-匝(1~406),矩阵初始位置为位于-x的直线段垂直于x轴
+line_array = [1,3,5,7]; %直线段
+arc_array = [2,4,6,8]; %圆弧段
 
-M_size = N*2*Ndp*Nc*Nd;% 矩阵大小，双饼拆为两个单饼
-
-M = zeros(M_size); %初始化互感矩阵,顺序为：元素(1~8)-匝(1~406)-单饼(1~2)-双饼(1~4)-线圈(1~2)
+% 输出当前日期时间
+startDateTime = datetime("now");
+fprintf('计算开始 %s\n', startDateTime);
 
 %% 循环计算
 
-for i = 1:M_size % 原元素，矩阵行
-    %互感计算
-    [Nd_i,N_i,Nsp_i,Ndp_i,Nc_i] = ind2sub([Nd,N,2,Ndp,Nc],i);
-    for j = 1:i % 新元素，矩阵列
-        %todo
-        [Nd_j,N_j,Nsp_j,Ndp_j,Nc_j] = ind2sub([Nd,N,2,Ndp,Nc],j);
+parfor i = 1:M_size % 源元素，矩阵行
+    tic
+    %源元素特征
+    [Nd_i,N_i,Nsp_i,Ndp_i,Nc_i] = ind2sub([Nd,N,2,Ndp,Nc],i); % 源-方位，匝数，单饼ab面，双饼数，线圈NS极
+    r_i = (N_i-1).*dr + r1; %源元素半径,也和直线段位置相关
+    pt_i = pt.*(2.*Nc_i-3)/2; %由于线圈NS极导致的位置x坐标变化 N极 -1/2pt S极 1/2pt
+    p_i = [lx/2,ly/2].*([-1,1].*(Nd_i==2) + [1,1].*(Nd_i==4) + [1,-1].*(Nd_i==6) + [-1,-1].*(Nd_i == 8)) + [pt_i,0];%圆角圆心位置
+    h_i = fun_single_pancake_position(Nsp_i,Ndp_i,Nc_i);
+    for j = 1:i % 目标元素，矩阵列
         
-        if i == j
-            M(i,j) = 0; % 自感
-        elseif condition1 %垂直直线
-            M(i,j) = 0;
-        elseif condition2 % 平行直线
-            body
-        elseif condition3 % 圆弧段-圆弧段
-            body
-        elseif condition4 % 直线段-圆弧段
-            body
-        elseif condition5 % 圆弧段-直线段
-            body
+        %目标元素特征
+        [Nd_j,N_j,Nsp_j,Ndp_j,Nc_j] = ind2sub([Nd,N,2,Ndp,Nc],j); % 目标-方位，匝数，单饼ab面，双饼数，线圈NS极
+        r_j = (N_j-1).*dr + r1; %目标元素半径，也和直线段位置相关
+        pt_j = pt.*(2.*Nc_j-3)/2; %由于线圈NS极导致的位置x坐标变化 N极 -1/2pt S极 1/2pt
+        p_j = [lx/2,ly/2].*([-1,1].*(Nd_j==2) + [1,1].*(Nd_j==4) + [1,-1].*(Nd_j==6) + [-1,-1].*(Nd_j == 8)) + [pt_j,0];%圆角圆心位置
+        h_j = fun_single_pancake_position(Nsp_j,Ndp_j,Nc_j);
+
+        if i == j % 对角线计算自感
+            if ismember(Nd_i,[1,5]) %直线段 y方向
+                M(i,j) = fun_Straight_segment_Mutual_inductance(ly);
+            elseif ismember(Nd_i,[3,7]) %直线段 x方向
+                M(i,j) = fun_Straight_segment_Mutual_inductance(lx);
+            else  % 圆弧段
+                M(i,j) = fun_Arc_segment_Mutual_inductance(r_i,r_j);
+            end
+        else % 非对角线计算互感
+            if  ismember(Nd_i,line_array) && ismember(Nd_j,line_array) %均为直线
+                if mod(Nd_i - Nd_j, 4) ~= 0 % 垂直直线
+                    M(i,j) = 0; % 互感为0
+                else % 非垂直直线即为平行直线
+                    l_temp = lx.*(ismember(Nd_i,[3,7])) + ly.*(ismember(Nd_i,[1,5])); % 根据方位判断直线段长度
+                    todo
+                    d_temp =...
+                        abs(r_i-r_j).*(Nd_i == Nd_j) + abs(r_i-r_j).*(Nd_i ~= Nd_j) + ... % 位置差异
+                        (lx.*(ismember(Nd_i,[1,5])) + ly.*(ismember(Nd_i,[3,7])))... % xy方位判断
+                        .*(Nd_i ~= Nd_j); % 判断是否位于两侧
+                    
+                    M(i,j) = fun_Straight_segment_Mutual_inductance(l_temp,d_temp); %平行线互感
+                    
+                end
+            elseif ismember(Nd_i,arc_array) && ismember(Nd_j,arc_array) % 圆弧段-圆弧段
+                afa_i = (Nd_i-2)./2.*pi./2; % 源元素起始角度
+                afa_j = (Nd_j-2)./2.*pi./2; % 目标元素起始角度
+                p_temp = p_j - p_i;
+                M(i,j) = fun_Arc_segment_Mutual_inductance(r_i,r_j,afa_i,afa_i + pi/2,afa_j,afa_j + pi/2,p_temp(1),p_temp(2),0);
+            elseif ismember(Nd_i,line_array) &&  ismember(Nd_j,arc_array)% 直线段-圆弧段
+
+                l_temp = ly.*ismember(Nd_i,[1,5]) + lx.*ismember(Nd_i,[3,7]); % 直线段长度位于y轴线上采用lx,位于x轴线上采用ly
+                    
+                    % 圆心远离直线段时，d>0，当圆心靠近直线段时，d<0
+                d_temp = ...
+                    r_i - (2*r_i + lx.*ismember(Nd_i,[1,5]) + ly.*ismember(Nd_i,[3,7])).*... % 根据直线段位置判断位于x、y轴
+                    ((abs(Nd_i - Nd_j) - 1) ~= 0); % 当圆弧段不位于直线段两侧时，间距d为负值，位于两侧时间距为r_i
+                    
+                M(i,j) = fun_Straight_Arc_segment_Mutual_inductance(l_temp,r_j,d_temp,0);
+ 
+            elseif ismember(Nd_i,arc_array) &&  ismember(Nd_j,line_array) % 圆弧段-直线段
+                
+                l_temp = ly.*ismember(Nd_j,[1,5]) + lx.*ismember(Nd_j,[3,7]); % 直线段长度位于y轴线上采用lx,位于x轴线上采用ly
+                d_temp = ...
+                    r_j - (2*r_j + lx.*ismember(Nd_j,[1,5]) + ly.*ismember(Nd_j,[3,7])).*... % 根据直线段位置判断位于x、y轴
+                    ((abs(Nd_i - Nd_j) - 1) ~= 0); % 当圆弧段不位于直线段两侧时，间距d为负值，位于两侧时间距为r_j
+                
+                M(i,j) = fun_Straight_Arc_segment_Mutual_inductance(l_temp,r_i,d_temp,0);
+            end
+            %M(j,i) = M(i,j);
         end
-        M(j,i) = M(i,j);
+        
     end
+    % 输出进度
+    schedule = i/M_size*100;
+    fprintf('循环时间%.2fs,循环数%d/%d,进度%.2f%%\n',toc,i,M_size,schedule);
 end
 
-M = fun_Arc_segment_Mutual_inductance(R1,R2,afa1,afa2,bta1,bta2,dx,dy,dz)
+
+%% 保存文件
+M_sp = tril(M,-1)+M'; % 由下对角线对称镜像形成对称互感矩阵
+save([pwd,'\data\single_pancake_mutual_inductance_matrix.mat'],'M_sp');
+% 输出当前日期时间
+endDateTime = datetime('now');
+fprintf('计算结束 %s\n', endDateTime);
+fprintf('总时长 %s\n', endDateTime-startDateTime);
+fprintf('总自感 %.4f\n', sum(M_sp,'all'));
