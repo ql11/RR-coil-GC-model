@@ -30,6 +30,7 @@ parfor i = 1:M_size % 源元素，矩阵行
     pt_i = pt.*(2.*Nc_i-3)/2; %由于线圈NS极导致的位置x坐标变化 N极 -1/2pt S极 1/2pt
     p_i = [lx/2,ly/2].*([-1,1].*(Nd_i==2) + [1,1].*(Nd_i==4) + [1,-1].*(Nd_i==6) + [-1,-1].*(Nd_i == 8)) + [pt_i,0];%圆角圆心位置
     h_i = fun_single_pancake_position(Nsp_i,Ndp_i,Nc_i);
+    px_i = fun_Straight_segment_position(Nd_i,Nc_i); % 直线段在坐标轴上的位置
     for j = 1:i % 目标元素，矩阵列
         
         %目标元素特征
@@ -38,7 +39,7 @@ parfor i = 1:M_size % 源元素，矩阵行
         pt_j = pt.*(2.*Nc_j-3)/2; %由于线圈NS极导致的位置x坐标变化 N极 -1/2pt S极 1/2pt
         p_j = [lx/2,ly/2].*([-1,1].*(Nd_j==2) + [1,1].*(Nd_j==4) + [1,-1].*(Nd_j==6) + [-1,-1].*(Nd_j == 8)) + [pt_j,0];%圆角圆心位置
         h_j = fun_single_pancake_position(Nsp_j,Ndp_j,Nc_j);
-
+        px_j = fun_Straight_segment_position(Nd_j,Nc_j); % 直线段在坐标轴上的位置
         if i == j % 对角线计算自感
             if ismember(Nd_i,[1,5]) %直线段 y方向
                 M(i,j) = fun_Straight_segment_Mutual_inductance(ly);
@@ -50,25 +51,29 @@ parfor i = 1:M_size % 源元素，矩阵行
         else % 非对角线计算互感
             if  ismember(Nd_i,line_array) && ismember(Nd_j,line_array) %均为直线
                 if mod(Nd_i - Nd_j, 4) ~= 0 % 垂直直线
-                    M(i,j) = 0; % 互感为0
-                else % 非垂直直线即为平行直线
-                    l_temp = lx.*(ismember(Nd_i,[3,7])) + ly.*(ismember(Nd_i,[1,5])); % 根据方位判断直线段长度
-                    todo
+                    M(i,j) = 0; % 互感近似为0
+                elseif ismember(Nd_i,[1,5])  % 竖直平行
+                    l_temp = ly; % 根据方位判断直线段长度
+                    
                     d_temp =...
-                        abs(r_i-r_j).*(Nd_i == Nd_j) + abs(r_i-r_j).*(Nd_i ~= Nd_j) + ... % 位置差异
-                        (lx.*(ismember(Nd_i,[1,5])) + ly.*(ismember(Nd_i,[3,7])))... % xy方位判断
-                        .*(Nd_i ~= Nd_j); % 判断是否位于两侧
-                    
-                    M(i,j) = fun_Straight_segment_Mutual_inductance(l_temp,d_temp); %平行线互感
-                    
+                        abs(r_i - r_j).*(Nd_i == Nd_j) + abs(r_i + r_j).*(Nd_i ~= Nd_j) + ... % 位置差异
+                        lx.*(Nd_i ~= Nd_j); % 判断是否位于两侧
+
+                    para_dst = pt.*abs(Nc_i - Nc_j); % 如果不位于同一线圈，则间距为极距
+                    M(i,j) = fun_Straight_segment_Mutual_inductance(l_temp,sqrt(d_temp.^2 + (h_i - h_j).^2),para_dst); %平行线互感，叠加高度差
+                
+                else % 水平平行
+                    l_temp = lx; % 根据方位判断直线段长度
+                    M(i,j) = fun_Straight_segment_Mutual_inductance(l_temp,sqrt((px_i - px_j).^2 +  (h_i - h_j).^2)); % 平行线互感，间距直接相减，叠加高度差
                 end
+                
             elseif ismember(Nd_i,arc_array) && ismember(Nd_j,arc_array) % 圆弧段-圆弧段
                 afa_i = (Nd_i-2)./2.*pi./2; % 源元素起始角度
                 afa_j = (Nd_j-2)./2.*pi./2; % 目标元素起始角度
                 p_temp = p_j - p_i;
-                M(i,j) = fun_Arc_segment_Mutual_inductance(r_i,r_j,afa_i,afa_i + pi/2,afa_j,afa_j + pi/2,p_temp(1),p_temp(2),0);
+                M(i,j) = fun_Arc_segment_Mutual_inductance(r_i,r_j,afa_i,afa_i + pi/2,afa_j,afa_j + pi/2,p_temp(1),p_temp(2),h_i - h_j);
             elseif ismember(Nd_i,line_array) &&  ismember(Nd_j,arc_array)% 直线段-圆弧段
-
+                todo
                 l_temp = ly.*ismember(Nd_i,[1,5]) + lx.*ismember(Nd_i,[3,7]); % 直线段长度位于y轴线上采用lx,位于x轴线上采用ly
                     
                     % 圆心远离直线段时，d>0，当圆心靠近直线段时，d<0

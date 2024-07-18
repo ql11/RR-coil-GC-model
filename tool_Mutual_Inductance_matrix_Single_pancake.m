@@ -50,7 +50,7 @@ parfor i = 1:M_size % 源元素，矩阵行
                     l_temp = lx.*(ismember(Nd_i,[3,7])) + ly.*(ismember(Nd_i,[1,5])); % 根据方位判断直线段长度
                     
                     d_temp =...
-                        abs(r_i-r_j).*(Nd_i == Nd_j) + abs(r_i-r_j).*(Nd_i ~= Nd_j) + ... % 位置差异
+                        abs(r_i-r_j).*(Nd_i == Nd_j) + abs(r_i + r_j).*(Nd_i ~= Nd_j) + ... % 位置差异
                         (lx.*(ismember(Nd_i,[1,5])) + ly.*(ismember(Nd_i,[3,7])))... % xy方位判断
                         .*(Nd_i ~= Nd_j); % 判断是否位于两侧
                     
