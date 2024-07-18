@@ -24,3 +24,5 @@
 *.mexw32
 *.mexw64
 *.tmp
+*.bkp
+*.dtmp

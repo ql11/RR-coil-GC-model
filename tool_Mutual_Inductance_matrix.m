@@ -23,6 +23,7 @@ fprintf('计算开始 %s\n', startDateTime);
 %% 循环计算
 
 parfor i = 1:M_size % 源元素，矩阵行
+%for i = 1:M_size % 源元素，矩阵行
     tic
     %源元素特征
     [Nd_i,N_i,Nsp_i,Ndp_i,Nc_i] = ind2sub([Nd,N,2,Ndp,Nc],i); % 源-方位，匝数，单饼ab面，双饼数，线圈NS极
