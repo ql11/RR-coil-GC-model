@@ -73,24 +73,39 @@ parfor i = 1:M_size % 源元素，矩阵行
                 p_temp = p_j - p_i;
                 M(i,j) = fun_Arc_segment_Mutual_inductance(r_i,r_j,afa_i,afa_i + pi/2,afa_j,afa_j + pi/2,p_temp(1),p_temp(2),h_i - h_j);
             elseif ismember(Nd_i,line_array) &&  ismember(Nd_j,arc_array)% 直线段-圆弧段
-                todo
-                l_temp = ly.*ismember(Nd_i,[1,5]) + lx.*ismember(Nd_i,[3,7]); % 直线段长度位于y轴线上采用lx,位于x轴线上采用ly
-                    
+                if ismember(Nd_i,[1,5])  % 竖直直线
                     % 圆心远离直线段时，d>0，当圆心靠近直线段时，d<0
-                d_temp = ...
-                    r_i - (2*r_i + lx.*ismember(Nd_i,[1,5]) + ly.*ismember(Nd_i,[3,7])).*... % 根据直线段位置判断位于x、y轴
-                    ((abs(Nd_i - Nd_j) - 1) ~= 0); % 当圆弧段不位于直线段两侧时，间距d为负值，位于两侧时间距为r_i
-                    
-                M(i,j) = fun_Straight_Arc_segment_Mutual_inductance(l_temp,r_j,d_temp,0);
- 
+                    d_temp = ...
+                        r_i - (2*r_i + lx).*... % 根据直线段位置判断位于x、y轴
+                        ((abs(Nd_i - Nd_j) - 1) ~= 0) +...% 当圆弧段不位于直线段两侧时，间距d为负值，位于两侧时间距为r_i
+                        pt.*(Nc_j - Nc_i); % 竖直直线的极距加到d上
+                        
+                    M(i,j) = fun_Straight_Arc_segment_Mutual_inductance(ly,r_j,d_temp,0);
+                else  % 水平直线                   
+                    % 圆心远离直线段时，d>0，当圆心靠近直线段时，d<0
+                    d_temp = ...
+                        r_i - (2*r_i + ly).*... % 根据直线段位置判断位于x、y轴
+                        ((abs(Nd_i - Nd_j) - 1) ~= 0); % 当圆弧段不位于直线段两侧时，间距d为负值，位于两侧时间距为r_i
+                    M(i,j) = fun_Straight_Arc_segment_Mutual_inductance(lx,r_j,d_temp,0,(Nc_j - Nc_i));% 竖直直线的极距有额外参数
+                end
+
             elseif ismember(Nd_i,arc_array) &&  ismember(Nd_j,line_array) % 圆弧段-直线段
-                
-                l_temp = ly.*ismember(Nd_j,[1,5]) + lx.*ismember(Nd_j,[3,7]); % 直线段长度位于y轴线上采用lx,位于x轴线上采用ly
-                d_temp = ...
-                    r_j - (2*r_j + lx.*ismember(Nd_j,[1,5]) + ly.*ismember(Nd_j,[3,7])).*... % 根据直线段位置判断位于x、y轴
-                    ((abs(Nd_i - Nd_j) - 1) ~= 0); % 当圆弧段不位于直线段两侧时，间距d为负值，位于两侧时间距为r_j
-                
-                M(i,j) = fun_Straight_Arc_segment_Mutual_inductance(l_temp,r_i,d_temp,0);
+                if ismember(Nd_j,[1,5])  % 竖直直线
+                    % 圆心远离直线段时，d>0，当圆心靠近直线段时，d<0
+                    d_temp = ...
+                        r_j - (2*r_j + lx).*... % 根据直线段位置判断位于x、y轴
+                        ((abs(Nd_j - Nd_i) - 1) ~= 0) +...% 当圆弧段不位于直线段两侧时，间距d为负值，位于两侧时间距为r_j
+                        pt.*(Nc_i - Nc_j); % 竖直直线的极距加到d上
+                        
+                    M(i,j) = fun_Straight_Arc_segment_Mutual_inductance(ly,r_i,d_temp,0);
+                else  % 水平直线                   
+                    % 圆心远离直线段时，d>0，当圆心靠近直线段时，d<0
+                    d_temp = ...
+                        r_j - (2*r_j + ly).*... % 根据直线段位置判断位于x、y轴
+                        ((abs(Nd_j - Nd_i) - 1) ~= 0); % 当圆弧段不位于直线段两侧时，间距d为负值，位于两侧时间距为r_j
+                    M(i,j) = fun_Straight_Arc_segment_Mutual_inductance(lx,r_i,d_temp,0,(Nc_i - Nc_j));% 竖直直线的极距有额外参数
+                end
+
             end
             %M(j,i) = M(i,j);
         end
