@@ -5,9 +5,9 @@
 [lx,ly] = Attitude('Length x-axis','Length y-axis'); %x，y轴直线段长度
 [r1,dr] = Attitude('Inner fillet radius','Thickness per turn');%圆角内径和每匝厚度
 
-%[Nd,N,Ndp,Nc]= Attitude('N of divisions','SP N','N of DPs','N of coils'); %单饼匝数，双饼个数，线圈个数
-N = 10; % 调试用
-[Nd,~,Ndp,Nc]= Attitude('N of divisions','SP N','N of DPs','N of coils'); %单饼匝数，双饼个数，线圈个数
+[Nd,N,Ndp,Nc]= Attitude('N of divisions','SP N','N of DPs','N of coils'); %单饼匝数，双饼个数，线圈个数
+%N = 10; % 调试用
+%[Nd,~,Ndp,Nc]= Attitude('N of divisions','SP N','N of DPs','N of coils'); %单饼匝数，双饼个数，线圈个数
 
 pt = Attitude('Pole pitch');%极距
 
@@ -22,7 +22,7 @@ fprintf('计算开始 %s\n', startDateTime);
 
 %% 循环计算
 
-parfor i = 1:M_size % 源元素，矩阵行
+for i = 1:M_size % 源元素，矩阵行
 %for i = 1:M_size % 源元素，矩阵行
     tic
     %源元素特征
@@ -32,7 +32,7 @@ parfor i = 1:M_size % 源元素，矩阵行
     p_i = [lx/2,ly/2].*([-1,1].*(Nd_i==2) + [1,1].*(Nd_i==4) + [1,-1].*(Nd_i==6) + [-1,-1].*(Nd_i == 8)) + [pt_i,0];%圆角圆心位置
     h_i = fun_single_pancake_position(Nsp_i,Ndp_i,Nc_i);
     px_i = fun_Straight_segment_position(Nd_i,Nc_i); % 直线段在坐标轴上的位置
-    for j = 1:i % 目标元素，矩阵列
+    parfor j = 1:i % 目标元素，矩阵列
         
         %目标元素特征
         [Nd_j,N_j,Nsp_j,Ndp_j,Nc_j] = ind2sub([Nd,N,2,Ndp,Nc],j); % 目标-方位，匝数，单饼ab面，双饼数，线圈NS极
@@ -119,8 +119,8 @@ end
 
 
 %% 保存文件
-M_sp = tril(M,-1)+M'; % 由下对角线对称镜像形成对称互感矩阵
-save([pwd,'\data\single_pancake_mutual_inductance_matrix.mat'],'M_sp');
+M_all = tril(M,-1)+M'; % 由下对角线对称镜像形成对称互感矩阵
+save([pwd,'\data\mutual_inductance_matrix.mat'],'M_all');
 % 输出当前日期时间
 endDateTime = datetime('now');
 fprintf('计算结束 %s\n', endDateTime);
