@@ -139,7 +139,7 @@ end
 
 %% 保存文件
 M_all = tril(M,-1)+M'; % 由下对角线对称镜像形成对称互感矩阵
-save([this_path,'/data/mutual_inductance_matrix.mat'],'M_all');
+save([this_path,'/data/mutual_inductance_matrix.mat'],'M_all','-v7.3');
 % 输出当前日期时间
 endDateTime = datetime('now');
 fprintf('计算结束 %s\n', endDateTime);

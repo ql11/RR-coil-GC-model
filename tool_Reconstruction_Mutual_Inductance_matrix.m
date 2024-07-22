@@ -24,8 +24,8 @@ N_1 = blockproc(M_1,blockSize, @(block) sum(block.data,1));
 
 %% 横向相加 1-2
 M_2 = M_all(1:Dn,Dn+1 : end); % 1-2
-blockSize = [size(M_3,1),Nd];
-N_2 = blockproc(M_3,blockSize, @(block) sum(block.data,2));
+blockSize = [size(M_2,1),Nd];
+N_2 = blockproc(M_2,blockSize, @(block) sum(block.data,2));
 
 
 %% 更简化，将每匝视为一个元素
@@ -35,4 +35,19 @@ M_simp = blockproc(M_all,blockSize, @(block) sum(block.data(:)));
 
 %% 输出
 M_mix = [M_all(1:Dn,1:Dn),N_2;N_1,M_simp(Dn/Nd +1 :end,Dn/Nd +1 :end)];
-save([this_path,'/data/mutual_inductance_matrix_mix.mat'],'M_mix');
+save([this_path,'/data/mutual_inductance_matrix_mix.mat'],'M_mix','-v7.3');
+
+M_mix_single = single(M_mix);
+save([this_path,'/data/mutual_inductance_matrix_mix_single_73.mat'],'M_mix_single','-v7.3');
+save([this_path,'/data/mutual_inductance_matrix_mix_single.mat'],'M_mix_single');
+
+%% triu
+M_s_u = triu(M_mix_single);
+save([this_path,'/data/mutual_inductance_matrix_mix_single_triu.mat'],'M_s_u');
+
+%% zip
+Msu_str = num2str(M_s_u, '%.6g');
+fid = fopen([this_path,'/data/mutual_inductance_matrix_mix_single_str.txt'],'w');
+fprintf(fid,'%s\n',Msu_str);
+fclose(fid);
+gzip([this_path,'/data/mutual_inductance_matrix_mix_single_str.txt']);
