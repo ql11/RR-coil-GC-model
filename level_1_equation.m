@@ -15,7 +15,7 @@ function [Kirchhoff_Matrix,Kirchhoff_Constant] = level_1_equation(Mutual_inducta
     end
 
 
-    %% [基尔霍夫电流定律](https://gitee.com/qin_lang/img/raw/master/Picgo/20200319161300.png)
+    %% [基尔霍夫电流定律](https://s21.ax1x.com/2024/07/29/pkLQzNT.png)
         % 赋予方程组初始值 以节点计数 一共 T*A个节点       
             Kirchhoff_Current_Matrix = zeros(T*A,(2*T-1)*A);%电流系数矩阵 列数对应电流个数，环向电流`i` T*A个，径向电流`j` T*A - A 个
             Kirchhoff_Current_Constant = zeros(T*A,1);%右侧常数矩阵
@@ -29,7 +29,7 @@ function [Kirchhoff_Matrix,Kirchhoff_Constant] = level_1_equation(Mutual_inducta
             Kirchhoff_Current_Constant(T*A) =  Operation_Current(t);
 
     
-    %% [基尔霍夫电压定律](https://gitee.com/qin_lang/img/raw/master/Picgo/20200319161358.png)
+    %% [基尔霍夫电压定律](https://s21.ax1x.com/2024/07/29/pkLlS4U.png)
         % 赋予方程组初始值 以回路计数 一共 T*A - A个节点
             Kirchhoff_Voltage_Matrix = zeros((T-1)*A,(2*T-1)*A);%电压系数矩阵 列数对应电流个数 
             Kirchhoff_Voltage_Constant = zeros((T-1)*A,1);%右侧常数矩阵
