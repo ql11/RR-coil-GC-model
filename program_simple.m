@@ -54,8 +54,11 @@ for loop_count = 1:loop_number
     disp(['磁体时间：',num2str(t),'秒','本次循环开始时间：【',now_time,' 】']);% 显示当前时间
     prepare_time = toc;tic % 记录准备时间
 
+    % 电流接近临界电流时的环向电阻，未定义，用0代替
+    Rc = zeros(size(R));
+
     % 方程系数
-    Equation = M./dt + diag(R);
+    Equation = M./dt + diag(Rc) + diag(R); % 互感电压加失超电压；径向电阻项由Canstant移项而来，无独立物理意义
     
     % 方程常数
     Canstant = M*I./dt + Operation_Current(t).*R;
