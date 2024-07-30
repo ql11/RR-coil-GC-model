@@ -1,7 +1,8 @@
 %% 运算环境
     disp('运算环境处理...')
     programdate = datestr(datetime,'yyyymmdd_hhMMss');
-    this_path = '/public3/home/scb9962/Upload/RR-coil-GC-model';
+    % this_path = '/public3/home/scb9962/Upload/RR-coil-GC-model';
+    this_path = 'D:/gitlib/RR-coil-GC-model';
     disp(['计算路径：',this_path]);
     addpath(this_path);
     disp('运算环境处理完毕...')
@@ -10,7 +11,7 @@
 %% 导入数据
 disp('正在载入数据...')
     % 计算基础属性
-    [N,Ndp,Nc]= Attitude('SP N','N of DPs','N of coils'); %分解元素数，单饼匝数，双饼个数，线圈个数
+    [N,Ndp,Nc]= Attitude('SP N','N of DPs','N of coils'); %单饼匝数，双饼个数，线圈个数
     
     % 计算规模提取矩阵选取1号双饼的A单饼和8号双饼的A单饼进行示例计算
     A = N*Ndp*2*Nc; % 精细模型电流数量也是环向电流数量
@@ -30,17 +31,18 @@ disp('变量初始化中...')
     dt = Attitude('Default time step');
 
     % 初始化电流列向量
-    I = oness(A,1).*Operation_Current(t); %环向电流总数量
+    I = ones(A,1).*Operation_Current(t); %环向电流总数量
 
     % 初始化循环数
-    loop_number = 100;
+    loop_number = 400;
 
 
 %% 数据记录
 disp('展开记录文件...')
     % 记录值
-    current_record = zeros(size(I,1),loop_number);%电流记录
+    current_record = zeros(A,loop_number);%电流记录
     time_record = zeros(1,loop_number);%时间轴
+    voltage_record = zeros(1,loop_number); %总电压记录
 
 %% 循环计算
 disp('开始循环运算...')
@@ -70,6 +72,7 @@ for loop_count = 1:loop_number
     % 记录  
     current_record(:,loop_count) = KI;%记录电流
     I = KI;
+    voltage_record(loop_count) = sum((Operation_Current(t) - I).*R,'all');
 
     % 显示
     solve_time = toc;tic
@@ -78,4 +81,17 @@ for loop_count = 1:loop_number
 end
 
 %% 保存记录
-save([this_path,'/record/','record_',programdate,'.mat'],'time_record','current_record');
+save([this_path,'/record/','record_',programdate,'.mat'],'time_record','current_record','voltage_record');
+
+%% 绘图
+figure;
+subplot(2, 1, 1);
+plot(time_record,voltage_record);
+legend('电压曲线');
+
+subplot(2, 1, 2);
+I_op = Operation_Current(time_record);
+plot(time_record,I_op);
+
+legend('电流曲线');  % 添加图例
+

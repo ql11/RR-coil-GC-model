@@ -32,7 +32,7 @@ myDict('Length y-axis') = 130e-3; % y轴直线段长度
 % 材料、电磁特性
 myDict('MMF') = 682e3; % 磁动势
 myDict('Basic critical current') = 55; % 默认临界电流50A
-myDict('Basic radial resistance') = 1; % 默认径向电阻1Ω
+myDict('Basic radial resistance') = 0.1; % 默认径向电阻1Ω
 
 
 % 默认环境特征
@@ -40,8 +40,8 @@ myDict('Default magnetic field') = 0; % 默认磁场0T
 myDict('Default temperature') = 77; % 默认温度77K
 
 % 控制电流特征
-myDict('Target current') = 50; % 目标电流
-myDict('Excitation rate') = 1; % 励磁速率
+myDict('Target current') = 4; % 目标电流
+myDict('Excitation rate') = 2; % 励磁速率
 
 
 
