@@ -32,6 +32,7 @@ myDict('Length y-axis') = 130e-3; % y轴直线段长度
 % 材料、电磁特性
 myDict('MMF') = 682e3; % 磁动势
 myDict('Basic critical current') = 55; % 默认临界电流50A
+myDict('Basic radial resistance') = 1; % 默认径向电阻1Ω
 
 
 % 默认环境特征
