@@ -5,7 +5,7 @@ function [Kirchhoff_Matrix,Kirchhoff_Constant] = level_1_equation(Mutual_inducta
     % level_1_equation - 构成精细方程，也就是总体方程的左上角
 
     %% 初始化参数
-    [A,T] = Attitude('N of divisions','SP N'); %单饼参数
+    [A,T] = Attitude('N of divisions','SP N'); %每匝分解个数和单饼匝数
     if nargin == 2
         t = 10;
         

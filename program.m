@@ -67,13 +67,17 @@ for loop_count = 1:loop_number
         disp(['磁体时间：',num2str(t),'秒','本次循环开始时间：【',now_time,' 】']);% 显示当前时间
         prepare_time = toc;tic % 记录准备时间
 
-    % 方程分为9个模块
+    % 方程分为4个模块
         % [1,1]
         [equation_1_1,constant_1_1] = level_1_equation(M_1_1,R1);
         % equation_1_1 = equation_1_1 + diag(Circle_Resistance_Matrix_1); 环向电阻-临界电流相关
 
         % [1,2]
-
+            
+            % 针对精细化模型，粗糙模型的影响体现在方程右侧的常数
+            %Inductance_Voltage_Matrix = Mutual_inductance_Matrix*I(1:T*A)./dt;
+            %Kirchhoff_Voltage_Constant(1) = sum(Inductance_Voltage_Matrix(2:A+1));%fun_Current_Control(t);%
+            %Kirchhoff_Voltage_Constant(2:T*A - A) =Inductance_Voltage_Matrix(2:T*A - A) - Inductance_Voltage_Matrix(2+A:T*A);
         % [2,1]
 
         % [2,2]
